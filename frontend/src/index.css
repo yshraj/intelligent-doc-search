@@ -1,0 +1,85 @@
+:root {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --gradient-start: #fff7e8;
+  --gradient-mid: #ffe8d4;
+  --gradient-end: #e8f4ff;
+  --bg: #fff9f2;
+  --text: #1c1b1a;
+  --text-muted: #5e5750;
+  --card-bg: #ffffff;
+  --card-shadow: 0 8px 24px rgba(48, 30, 18, 0.08);
+  --card-shadow-heavy: 0 20px 44px rgba(40, 22, 10, 0.18);
+  --border: rgba(67, 44, 26, 0.12);
+  --primary: #d35e24;
+  --primary-hover: #b64f1f;
+  --accent: #157bc6;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--text);
+  background: linear-gradient(130deg, var(--gradient-start) 0%, var(--gradient-mid) 42%, var(--gradient-end) 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  border-radius: var(--radius-sm);
+  border: none;
+  padding: 0.6em 1.2em;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.16;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
