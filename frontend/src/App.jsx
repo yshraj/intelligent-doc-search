@@ -294,7 +294,47 @@ function App() {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
   const [currentPrompts, setCurrentPrompts] = useState([]);
+  const [showBackendWarning, setShowBackendWarning] = useState(false);
   const bootstrappedTokenRef = useRef('');
+
+  // Preflight check for backend availability
+  const checkBackendHealth = useCallback(async () => {
+    const startTime = Date.now();
+    let warningTimeout;
+
+    try {
+      // Set a timeout to show warning if it takes more than 5 seconds
+      warningTimeout = setTimeout(() => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= 5000) {
+          setShowBackendWarning(true);
+        }
+      }, 5000);
+
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+      const response = await fetch(`${API_URL}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      clearTimeout(warningTimeout);
+
+      // If response took more than 5 seconds, show the warning briefly
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= 5000) {
+        setShowBackendWarning(true);
+        // Auto-hide after 8 seconds
+        setTimeout(() => setShowBackendWarning(false), 8000);
+      }
+    } catch (error) {
+      clearTimeout(warningTimeout);
+      console.warn('Backend health check failed:', error);
+    }
+  }, []);
 
   const initProfile = useCallback(async (accessToken) => {
     if (!accessToken) return;
@@ -338,6 +378,9 @@ function App() {
       return;
     }
 
+    // Run preflight check on mount
+    checkBackendHealth();
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -363,7 +406,7 @@ function App() {
     });
 
     return () => subscription?.unsubscribe();
-  }, []);
+  }, [checkBackendHealth]);
 
   useEffect(() => {
     if (!session?.access_token) return;
@@ -913,6 +956,23 @@ function App() {
   if (!session) {
     return (
       <div className="app">
+        {showBackendWarning && (
+          <div className="backend-warning-toast">
+            <div className="toast-icon">⏳</div>
+            <div className="toast-content">
+              <strong>Backend is waking up</strong>
+              <p>Free Render instance is spinning up. First request may take 30-60 seconds.</p>
+            </div>
+            <button 
+              type="button" 
+              className="toast-close" 
+              onClick={() => setShowBackendWarning(false)}
+              aria-label="Close notification"
+            >
+              ×
+            </button>
+          </div>
+        )}
         <header className="app-header">
           <div className="brand">
             <BrandIcon />
@@ -1103,6 +1163,23 @@ function App() {
 
     return (
       <div className="app app-welcome-back">
+        {showBackendWarning && (
+          <div className="backend-warning-toast">
+            <div className="toast-icon">⏳</div>
+            <div className="toast-content">
+              <strong>Backend is waking up</strong>
+              <p>Free Render instance is spinning up. First request may take 30-60 seconds.</p>
+            </div>
+            <button 
+              type="button" 
+              className="toast-close" 
+              onClick={() => setShowBackendWarning(false)}
+              aria-label="Close notification"
+            >
+              ×
+            </button>
+          </div>
+        )}
         <header className="app-header">
           <div className="brand">
             <BrandIcon />

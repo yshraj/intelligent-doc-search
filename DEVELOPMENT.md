@@ -1256,4 +1256,8 @@ For questions or contributions, see the main [README.md](README.md).
 
 **Document Version:** 1.0  
 **Last Updated:** February 2026  
-**Author:** [Your Name]
+**Author:** Yash Darji  
+**Role:** Backend Engineer – AI & Agent Systems  
+**LinkedIn:** https://www.linkedin.com/in/yash-darji/  
+**GitHub:** https://github.com/yshraj  
+**Portfolio:** https://yashdarjiportfolio.netlify.app/

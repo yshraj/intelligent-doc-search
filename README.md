@@ -6,8 +6,6 @@ An intelligent document chat application that lets users upload PDFs and text fi
 
 DocuChat combines semantic search with large language models to provide accurate, context-aware answers from your documents. The system features intent detection, hybrid chunking strategies, and comprehensive source attribution.
 
-**Live Demo:** [Add your deployment URL here]
-
 ## ✨ Key Features
 
 - **Smart Document Processing** - Upload PDF/TXT files with automatic text extraction and intelligent chunking
@@ -19,6 +17,7 @@ DocuChat combines semantic search with large language models to provide accurate
 - **File Deduplication** - Automatic detection of duplicate uploads
 - **User Isolation** - Complete data privacy with user-scoped access
 - **Modern UI** - Clean, responsive interface with smooth animations
+- **Backend Health Check** - Automatic detection of cold starts with user-friendly notifications
 
 ## 🏗️ Architecture
 
@@ -89,8 +88,8 @@ For detailed architecture decisions and AI tool usage, see [DEVELOPMENT.md](DEVE
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd docuchat
+git clone https://github.com/yshraj/intelligent-doc-search.git
+cd intelligent-doc-search
 
 # Backend setup
 cd backend
@@ -379,6 +378,18 @@ The system detects 8 query intent types for optimized prompting:
 
 ## 🚀 Deployment
 
+### Backend Cold Start Handling
+
+If deploying the backend on Render's free tier or similar platforms with cold starts:
+
+The frontend includes automatic backend health monitoring that:
+- Sends a preflight request to `/health` endpoint on page load
+- Shows a friendly notification if the backend takes >5 seconds to respond
+- Informs users that the first request may take 30-60 seconds while the instance spins up
+- Auto-dismisses after 8 seconds or can be manually closed
+
+This provides a smooth user experience even when the backend is waking from sleep.
+
 ### Environment Variables for Production
 
 Update these in your deployment platform:
@@ -431,7 +442,7 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## 📄 License
 
-[Add your license here]
+MIT License - Feel free to use this project for learning and portfolio purposes.
 
 ## 🙏 Acknowledgments
 
