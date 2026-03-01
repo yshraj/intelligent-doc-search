@@ -440,14 +440,18 @@ def _process_document_background(
                 
                 # Create groups if they don't exist and assign document
                 if result.get("suggested_groups"):
-                    for group_name in result["suggested_groups"]:
+                    # Only use the FIRST (most confident) group to avoid duplicates
+                    # The document_grouper returns groups in order of confidence
+                    primary_group = result["suggested_groups"][0] if result["suggested_groups"] else None
+                    
+                    if primary_group:
                         try:
                             # Check if group exists
                             existing_group = (
                                 admin.table("document_groups")
                                 .select("id")
                                 .eq("user_id", user_id)
-                                .eq("group_name", group_name)
+                                .eq("group_name", primary_group)
                                 .limit(1)
                                 .execute()
                             )
@@ -460,21 +464,28 @@ def _process_document_background(
                                     admin.table("document_groups")
                                     .insert({
                                         "user_id": user_id,
-                                        "group_name": group_name,
+                                        "group_name": primary_group,
                                         "group_type": "type_based",
                                     })
                                     .execute()
                                 )
                                 group_id = new_group.data[0]["id"]
                             
-                            # Add document to group
-                            admin.table("document_group_membership").insert({
-                                "document_id": document_id,
-                                "group_id": group_id,
-                            }).execute()
+                            # Add document to group (only once)
+                            try:
+                                admin.table("document_group_membership").insert({
+                                    "document_id": document_id,
+                                    "group_id": group_id,
+                                }).execute()
+                            except Exception as membership_exc:
+                                # Ignore duplicate membership errors
+                                if "duplicate" not in str(membership_exc).lower():
+                                    raise
+                            
+                            logger.info("Assigned document %s to primary group: %s", document_id, primary_group)
                             
                         except Exception as group_exc:
-                            logger.warning("Failed to create/assign group %s: %s", group_name, group_exc)
+                            logger.warning("Failed to create/assign group %s: %s", primary_group, group_exc)
                     
                     logger.info("Assigned document %s to groups", document_id)
             

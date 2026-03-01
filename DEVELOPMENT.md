@@ -1300,3 +1300,104 @@ For questions or contributions, see the main [README.md](README.md).
 **LinkedIn:** https://www.linkedin.com/in/yash-darji/  
 **GitHub:** https://github.com/yshraj  
 **Portfolio:** https://yashdarjiportfolio.netlify.app/
+
+
+---
+
+## Document Types & Classification
+
+### Supported Document Types (16 types)
+
+The system automatically classifies documents into groups based on content analysis:
+
+**Document Types:**
+- **Contracts** - Agreements, terms, service agreements
+- **Reports** - Analysis, findings, quarterly/annual reports
+- **Meeting Notes** - Minutes, agendas, action items
+- **Policies** - Guidelines, procedures, compliance docs
+- **Invoices** - Bills, payments, financial transactions
+- **Memos** - Internal communications, announcements
+- **Proposals** - Bids, quotations, estimates
+- **Presentations** - Slides, decks, overviews
+- **Resumes & CVs** - Job applications, experience, skills
+- **Whitepapers** - Research papers, technical documents
+- **Manuals & Guides** - User guides, handbooks, tutorials
+- **Specifications** - Technical specs, requirements docs
+- **Case Studies** - Success stories, customer stories
+- **Newsletters** - Bulletins, updates, digests
+- **Forms & Applications** - Questionnaires, surveys
+- **Certificates** - Awards, diplomas, certifications
+
+**Topic Groups:**
+- **Legal Documents** - Legal, law, contracts
+- **Financial Documents** - Budget, revenue, accounting
+- **HR Documents** - Employee, hiring, benefits
+- **Technical Documents** - Software, systems, APIs
+- **Marketing Materials** - Campaigns, branding, sales
+- **Operations Documents** - Processes, logistics, workflows
+- **Research Documents** - Studies, analysis, investigations
+- **Training Materials** - Courses, workshops, certifications
+- **Compliance Documents** - Regulatory, audit, GDPR, HIPAA
+- **Product Documents** - Features, roadmaps, releases
+- **Customer Service** - Support tickets, feedback, complaints
+- **Security Documents** - Cybersecurity, vulnerabilities, threats
+
+### How to Add More Types
+
+Edit `backend/app/document_grouper.py`:
+
+**1. Add pattern to TYPE_PATTERNS:**
+```python
+TYPE_PATTERNS = {
+    # ... existing types ...
+    "your_type_name": [
+        r"\b(keyword1|keyword2|keyword3)\b",
+        r"\b(another|set|of|keywords)\b",
+        r"\b(more|specific|patterns)\b",
+    ],
+}
+```
+
+**2. Add group name mapping:**
+```python
+def _type_to_group_name(self, doc_type: str) -> str:
+    type_map = {
+        # ... existing mappings ...
+        "your_type_name": "Your Display Name",
+    }
+    return type_map.get(doc_type, doc_type.replace("_", " ").title())
+```
+
+**3. Restart backend** - Changes take effect immediately!
+
+### Classification Logic
+
+1. **Pattern Matching** - Scans document content for keywords
+2. **Scoring** - Counts keyword matches per type
+3. **Priority** - Type > Topic > Time
+4. **Assignment** - Document assigned to PRIMARY (highest scoring) group only
+5. **Automatic** - No user action needed
+
+### Pattern Matching Tips
+
+- Use word boundaries: `r"\b(word)\b"` matches "word" but not "password"
+- All patterns are case-insensitive
+- Multiple keywords: `r"\b(keyword1|keyword2|keyword3)\b"`
+- Flexible spacing: `r"action.?items"` matches "action items" or "action-items"
+- Specific phrases: `r"\b(quarterly|annual|monthly) report\b"`
+
+### Example: Adding "SOP" Type
+
+```python
+# In TYPE_PATTERNS
+"sop": [
+    r"\b(standard operating procedure|sop|operating procedure)\b",
+    r"\b(step by step|procedure|protocol)\b",
+    r"\b(safety|quality|process control)\b",
+],
+
+# In _type_to_group_name()
+"sop": "Standard Operating Procedures",
+```
+
+Restart backend and upload a document with "standard operating procedure" - it will automatically go to the "Standard Operating Procedures" group!

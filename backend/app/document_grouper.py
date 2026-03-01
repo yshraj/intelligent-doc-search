@@ -60,6 +60,47 @@ class DocumentGrouper:
             r"\b(slide|presentation|deck)\b",
             r"\b(overview|introduction|summary)\b",
         ],
+        # NEW TYPES - Add more below
+        "resume": [
+            r"\b(resume|curriculum vitae|cv|experience|education)\b",
+            r"\b(skills|qualifications|employment history)\b",
+            r"\b(references|objective|summary)\b",
+        ],
+        "whitepaper": [
+            r"\b(white paper|whitepaper|research paper)\b",
+            r"\b(abstract|methodology|literature review)\b",
+            r"\b(introduction|background|conclusion)\b",
+        ],
+        "manual": [
+            r"\b(manual|guide|handbook|documentation)\b",
+            r"\b(instructions|how to|step by step)\b",
+            r"\b(user guide|reference|tutorial)\b",
+        ],
+        "specification": [
+            r"\b(specification|specs|requirements|technical spec)\b",
+            r"\b(functional|non-functional|system requirements)\b",
+            r"\b(architecture|design|implementation)\b",
+        ],
+        "case_study": [
+            r"\b(case study|success story|customer story)\b",
+            r"\b(challenge|solution|results|outcome)\b",
+            r"\b(testimonial|impact|roi)\b",
+        ],
+        "newsletter": [
+            r"\b(newsletter|bulletin|update|digest)\b",
+            r"\b(monthly|weekly|quarterly) (newsletter|update)\b",
+            r"\b(subscribe|unsubscribe|edition)\b",
+        ],
+        "form": [
+            r"\b(form|application|questionnaire|survey)\b",
+            r"\b(please fill|complete this|submit by)\b",
+            r"\b(signature|date|applicant)\b",
+        ],
+        "certificate": [
+            r"\b(certificate|certification|award|diploma)\b",
+            r"\b(hereby certify|awarded to|completion)\b",
+            r"\b(accredited|licensed|qualified)\b",
+        ],
     }
     
     # Topic patterns
@@ -87,6 +128,31 @@ class DocumentGrouper:
         "operations": [
             r"\b(operations|process|workflow|logistics)\b",
             r"\b(supply chain|inventory|production)\b",
+        ],
+        # NEW TOPICS - Add more below
+        "research": [
+            r"\b(research|study|analysis|investigation)\b",
+            r"\b(hypothesis|experiment|findings|data)\b",
+        ],
+        "training": [
+            r"\b(training|learning|education|course)\b",
+            r"\b(workshop|seminar|certification|skill)\b",
+        ],
+        "compliance": [
+            r"\b(compliance|regulatory|audit|governance)\b",
+            r"\b(gdpr|hipaa|sox|iso|regulation)\b",
+        ],
+        "product": [
+            r"\b(product|feature|roadmap|release)\b",
+            r"\b(development|launch|specification)\b",
+        ],
+        "customer_service": [
+            r"\b(customer service|support|helpdesk|ticket)\b",
+            r"\b(complaint|feedback|satisfaction|issue)\b",
+        ],
+        "security": [
+            r"\b(security|cybersecurity|vulnerability|threat)\b",
+            r"\b(encryption|authentication|firewall|breach)\b",
         ],
     }
     
@@ -175,9 +241,18 @@ class DocumentGrouper:
         #     llm_tags = self._llm_classify(content[:3000])
         #     tags.extend(llm_tags)
         
+        # Remove duplicates and prioritize: type > topic > time
+        # This ensures the most specific group is first
+        unique_groups = []
+        seen = set()
+        for group in suggested_groups:
+            if group not in seen:
+                unique_groups.append(group)
+                seen.add(group)
+        
         return {
             "tags": tags,
-            "suggested_groups": list(set(suggested_groups)),  # Remove duplicates
+            "suggested_groups": unique_groups,  # Already prioritized and deduplicated
             "is_anonymous": is_anonymous,
         }
     
@@ -381,6 +456,15 @@ Only include tags you're confident about (confidence > 0.6).
             "memo": "Memos",
             "proposal": "Proposals",
             "presentation": "Presentations",
+            # NEW TYPES
+            "resume": "Resumes & CVs",
+            "whitepaper": "Whitepapers",
+            "manual": "Manuals & Guides",
+            "specification": "Specifications",
+            "case_study": "Case Studies",
+            "newsletter": "Newsletters",
+            "form": "Forms & Applications",
+            "certificate": "Certificates",
         }
         return type_map.get(doc_type, doc_type.replace("_", " ").title())
     
@@ -393,6 +477,13 @@ Only include tags you're confident about (confidence > 0.6).
             "technical": "Technical Documents",
             "marketing": "Marketing Materials",
             "operations": "Operations Documents",
+            # NEW TOPICS
+            "research": "Research Documents",
+            "training": "Training Materials",
+            "compliance": "Compliance Documents",
+            "product": "Product Documents",
+            "customer_service": "Customer Service",
+            "security": "Security Documents",
         }
         return topic_map.get(topic, topic.replace("_", " ").title())
     

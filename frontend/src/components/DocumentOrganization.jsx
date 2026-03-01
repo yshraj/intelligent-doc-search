@@ -7,6 +7,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupDocuments, setGroupDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
   };
 
   const fetchGroupDocuments = async (groupId) => {
+    setLoadingDocuments(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -54,19 +56,26 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
       }
     } catch (error) {
       console.error('Error fetching group documents:', error);
+    } finally {
+      setLoadingDocuments(false);
     }
   };
 
   const handleGroupClick = (group) => {
-    setSelectedGroup(group);
-    fetchGroupDocuments(group.id);
-    
     // Toggle expand/collapse
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(group.id)) {
       newExpanded.delete(group.id);
+      // Clear selection when collapsing
+      if (selectedGroup?.id === group.id) {
+        setSelectedGroup(null);
+        setGroupDocuments([]);
+      }
     } else {
       newExpanded.add(group.id);
+      // Fetch documents when expanding
+      setSelectedGroup(group);
+      fetchGroupDocuments(group.id);
     }
     setExpandedGroups(newExpanded);
   };
@@ -142,7 +151,9 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
                   
                   {expandedGroups.has(group.id) && selectedGroup?.id === group.id && (
                     <div className="group-documents">
-                      {groupDocuments.length === 0 ? (
+                      {loadingDocuments ? (
+                        <div className="no-documents">Loading documents...</div>
+                      ) : groupDocuments.length === 0 ? (
                         <div className="no-documents">No documents</div>
                       ) : (
                         groupDocuments.map(doc => (
