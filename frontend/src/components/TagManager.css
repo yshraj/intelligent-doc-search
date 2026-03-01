@@ -184,3 +184,92 @@
   padding: 30px;
   color: #999;
 }
+
+/* Dark Mode Support */
+[data-theme="dark"] .tag-manager {
+  background: #2c2c2e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .tag-manager-header h4 {
+  color: #e5e5e7;
+}
+
+[data-theme="dark"] .add-tag-btn {
+  background: #0a84ff;
+}
+
+[data-theme="dark"] .add-tag-btn:hover {
+  background: #409cff;
+}
+
+[data-theme="dark"] .add-tag-form {
+  background: #1c1c1e;
+}
+
+[data-theme="dark"] .add-tag-form input,
+[data-theme="dark"] .add-tag-form select {
+  background: #2c2c2e;
+  border: 1px solid #38383a;
+  color: #e5e5e7;
+}
+
+[data-theme="dark"] .add-tag-form button {
+  background: #32d74b;
+}
+
+[data-theme="dark"] .add-tag-form button:hover {
+  background: #30d158;
+}
+
+[data-theme="dark"] .tag-item {
+  background: #1c1c1e;
+  border-left-color: #636366;
+}
+
+[data-theme="dark"] .tag-item:hover {
+  background: #2c2c2e;
+}
+
+[data-theme="dark"] .tag-name {
+  color: #e5e5e7;
+}
+
+[data-theme="dark"] .tag-meta {
+  color: #98989d;
+}
+
+[data-theme="dark"] .tag-category {
+  background: #3a3a3c;
+  color: #98989d;
+}
+
+[data-theme="dark"] .tag-separator {
+  color: #48484a;
+}
+
+[data-theme="dark"] .tag-confidence {
+  color: #98989d;
+}
+
+[data-theme="dark"] .tag-manual {
+  color: #ff9f0a;
+}
+
+[data-theme="dark"] .remove-tag-btn {
+  color: #636366;
+}
+
+[data-theme="dark"] .remove-tag-btn:hover {
+  background: #3a1f1f;
+  color: #ff453a;
+}
+
+[data-theme="dark"] .no-tags,
+[data-theme="dark"] .tag-manager-loading {
+  color: #636366;
+}
+
+[data-theme="dark"] .no-tags .hint {
+  color: #48484a;
+}
