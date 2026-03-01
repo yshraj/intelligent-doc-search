@@ -244,7 +244,7 @@
 
 /* Dark Mode Support */
 [data-theme="dark"] .document-organization {
-  background: #1c1c1e;
+  background: #2c2c2e;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -253,15 +253,16 @@
 }
 
 [data-theme="dark"] .doc-org-header h3 {
-  color: #f5f5f7;
+  color: #e5e5e7;
 }
 
 [data-theme="dark"] .refresh-btn:hover:not(:disabled) {
-  background: #2c2c2e;
+  background: #3a3a3c;
 }
 
 [data-theme="dark"] .group-type-section {
   border: 1px solid #38383a;
+  background: #1c1c1e;
 }
 
 [data-theme="dark"] .group-type-header {
@@ -271,20 +272,20 @@
 }
 
 [data-theme="dark"] .group-item {
-  border-bottom: 1px solid #2c2c2e;
+  border-bottom: 1px solid #38383a;
 }
 
 [data-theme="dark"] .group-name:hover {
-  background: #2c2c2e;
+  background: #3a3a3c;
 }
 
 [data-theme="dark"] .group-name.expanded {
-  background: #1a3a52;
+  background: #1e3a5f;
   color: #0a84ff;
 }
 
 [data-theme="dark"] .doc-count {
-  background: #38383a;
+  background: #3a3a3c;
   color: #98989d;
 }
 
@@ -294,7 +295,7 @@
 }
 
 [data-theme="dark"] .group-documents {
-  background: #000000;
+  background: #1c1c1e;
 }
 
 [data-theme="dark"] .doc-item-wrapper:hover {
@@ -306,7 +307,7 @@
 }
 
 [data-theme="dark"] .doc-download-btn:hover:not(:disabled) {
-  background: #38383a;
+  background: #3a3a3c;
 }
 
 [data-theme="dark"] .no-documents,
