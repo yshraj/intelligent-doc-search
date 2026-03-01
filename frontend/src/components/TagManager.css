@@ -1,0 +1,186 @@
+.tag-manager {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.tag-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tag-manager-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.add-tag-btn {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.add-tag-btn:hover {
+  background: #1976D2;
+}
+
+.add-tag-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.add-tag-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.add-tag-form select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.add-tag-form button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.add-tag-form button:hover {
+  background: #45a049;
+}
+
+.tags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tag-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border-left: 4px solid #999;
+  transition: all 0.2s;
+}
+
+.tag-item:hover {
+  background: #f0f0f0;
+  transform: translateX(2px);
+}
+
+.tag-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.tag-icon {
+  font-size: 20px;
+}
+
+.tag-info {
+  flex: 1;
+}
+
+.tag-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.tag-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.tag-category {
+  background: #e0e0e0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.tag-separator {
+  color: #ccc;
+}
+
+.tag-confidence {
+  color: #666;
+}
+
+.tag-manual {
+  color: #FF9800;
+  font-weight: 500;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.remove-tag-btn:hover {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.no-tags {
+  text-align: center;
+  padding: 30px 20px;
+  color: #999;
+}
+
+.no-tags p {
+  margin: 8px 0;
+}
+
+.no-tags .hint {
+  font-size: 13px;
+  color: #bbb;
+}
+
+.tag-manager-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: #999;
+}

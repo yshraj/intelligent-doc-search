@@ -15,6 +15,7 @@ from google import genai
 from google.genai import types
 
 from app.config import settings
+from app.document_grouper import document_grouper
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +353,9 @@ def process_document(
     {
         "status": "ready" | "failed",
         "total_chunks": int,
-        "error_message": str | None
+        "error_message": str | None,
+        "tags": list[dict] | None,
+        "suggested_groups": list[str] | None
     }
     """
     try:
@@ -396,10 +399,24 @@ def process_document(
             filename,
         )
         
+        # Step 5: Analyze document for tags and groups
+        full_text = "\n\n".join(page["text"] for page in pages)
+        analysis = document_grouper.analyze_document(full_text, filename, mime_type)
+        
+        logger.info(
+            "Document analysis complete for %s: %d tags, %d suggested groups",
+            document_id,
+            len(analysis["tags"]),
+            len(analysis["suggested_groups"]),
+        )
+        
         return {
             "status": "ready",
             "total_chunks": len(chunks),
             "error_message": None,
+            "tags": analysis["tags"],
+            "suggested_groups": analysis["suggested_groups"],
+            "is_anonymous": analysis["is_anonymous"],
         }
     
     except Exception as exc:
@@ -408,4 +425,7 @@ def process_document(
             "status": "failed",
             "total_chunks": 0,
             "error_message": str(exc)[:500],
+            "tags": None,
+            "suggested_groups": None,
+            "is_anonymous": False,
         }

@@ -1,21 +1,60 @@
-# DocuChat - Development Documentation
+# LiveDocAI - Development Documentation
 
-This document covers architecture decisions, AI tools used during development, trade-offs made, and production considerations.
+## Document Grouper Implementation
 
-## Table of Contents
+### Overview
+The Document Grouper automatically classifies, tags, and organizes documents. It analyzes content during upload and assigns relevant tags and group memberships.
 
-1. [Architecture Decisions](#architecture-decisions)
-2. [AI Tools Used](#ai-tools-used)
-3. [Database Schema & Rationale](#database-schema--rationale)
-4. [Authentication & Session Management](#authentication--session-management)
-5. [API Design Choices](#api-design-choices)
-6. [AI Integration Approach](#ai-integration-approach)
-7. [Trade-offs & Time Constraints](#trade-offs--time-constraints)
-8. [Production Considerations](#production-considerations)
+### Components
+
+**Backend:**
+- `supabase/document_groups.sql` - Database schema (3 tables)
+- `backend/app/document_grouper.py` - Classification engine
+- `backend/app/routers/groups.py` - API endpoints
+- Integration in ingestion pipeline
+
+**Frontend:**
+- `frontend/src/components/DocumentOrganization.jsx` - Main UI
+- `frontend/src/components/TagManager.jsx` - Tag management
+- `frontend/src/components/SensitivityBadge.jsx` - Sensitivity indicators
+
+### How It Works
+
+1. Document uploaded → Text extracted and chunked
+2. Document Grouper analyzes content (pattern matching + optional LLM)
+3. Tags generated (type, topic, sensitivity, time_period)
+4. Groups created automatically (if needed)
+5. Document assigned to groups
+6. Status set to "ready"
+
+### Tag Categories
+- **type** - contract, report, memo, policy, invoice
+- **topic** - legal, finance, technical, hr, marketing
+- **sensitivity** - public, internal, confidential, anonymous
+- **time_period** - FY2024, Q1_2024, etc.
+- **custom** - User-defined
+
+### API Endpoints
+- `GET /groups/documents/{doc_id}/tags` - Get tags
+- `POST /groups/documents/{doc_id}/tags` - Add tag
+- `DELETE /groups/documents/{doc_id}/tags/{tag_id}` - Remove tag
+- `GET /groups/tags/search?tag_names=...` - Search by tags
+- `GET /groups` - List groups
+- `POST /groups` - Create group
+- `GET /groups/{group_id}/documents` - Get group documents
+- `PUT /groups/documents/{doc_id}/groups` - Update membership
+
+### Setup
+See `SETUP.md` for detailed setup instructions.
+
+### Features
+See `FEATURES.md` for usage examples and patterns.
 
 ---
 
-## Architecture Decisions
+## Original Architecture Documentation
+
+
 
 ### 1. Why FastAPI?
 

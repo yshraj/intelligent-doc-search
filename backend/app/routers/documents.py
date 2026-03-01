@@ -403,7 +403,7 @@ def _process_document_background(
     mime_type: str,
     content: bytes,
 ):
-    """Background task to process document: extract, chunk, embed, store."""
+    """Background task to process document: extract, chunk, embed, store, and tag."""
     logger.info("Starting background processing for document %s", document_id)
     
     try:
@@ -418,6 +418,68 @@ def _process_document_background(
         admin.table(DOCUMENTS_TABLE).update({
             "status": result["status"],
         }).eq("id", document_id).execute()
+        
+        # If processing succeeded, save tags and create groups
+        if result["status"] == "ready" and result.get("tags"):
+            try:
+                # Save tags
+                tags_to_insert = [
+                    {
+                        "document_id": document_id,
+                        "tag_name": tag["name"],
+                        "tag_category": tag["category"],
+                        "confidence_score": tag["confidence"],
+                        "auto_generated": True,
+                    }
+                    for tag in result["tags"]
+                ]
+                
+                if tags_to_insert:
+                    admin.table("document_tags").insert(tags_to_insert).execute()
+                    logger.info("Saved %d tags for document %s", len(tags_to_insert), document_id)
+                
+                # Create groups if they don't exist and assign document
+                if result.get("suggested_groups"):
+                    for group_name in result["suggested_groups"]:
+                        try:
+                            # Check if group exists
+                            existing_group = (
+                                admin.table("document_groups")
+                                .select("id")
+                                .eq("user_id", user_id)
+                                .eq("group_name", group_name)
+                                .limit(1)
+                                .execute()
+                            )
+                            
+                            if existing_group.data:
+                                group_id = existing_group.data[0]["id"]
+                            else:
+                                # Create group
+                                new_group = (
+                                    admin.table("document_groups")
+                                    .insert({
+                                        "user_id": user_id,
+                                        "group_name": group_name,
+                                        "group_type": "type_based",
+                                    })
+                                    .execute()
+                                )
+                                group_id = new_group.data[0]["id"]
+                            
+                            # Add document to group
+                            admin.table("document_group_membership").insert({
+                                "document_id": document_id,
+                                "group_id": group_id,
+                            }).execute()
+                            
+                        except Exception as group_exc:
+                            logger.warning("Failed to create/assign group %s: %s", group_name, group_exc)
+                    
+                    logger.info("Assigned document %s to groups", document_id)
+            
+            except Exception as tag_exc:
+                logger.warning("Failed to save tags/groups for document %s: %s", document_id, tag_exc)
         
         logger.info("Document %s processing complete: %s", document_id, result["status"])
     

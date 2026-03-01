@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import chat, documents, health, history, profile
+from app.routers import chat, documents, groups, health, history, profile
 
 app = FastAPI(
     title="LiveDocAI",
@@ -29,6 +29,7 @@ app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(profile.router)
 app.include_router(history.router)
+app.include_router(groups.router)
 
 
 @app.get("/")

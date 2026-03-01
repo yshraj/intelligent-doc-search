@@ -26,3 +26,4 @@ dist/
 # Logs and build
 *.log
 build/
+.kiro/
