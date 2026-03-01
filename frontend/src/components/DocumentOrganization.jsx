@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { API_URL, supabase } from '../lib/supabase';
 import './DocumentOrganization.css';
 
 export default function DocumentOrganization({ userId, onDocumentSelect }) {
@@ -20,7 +20,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const response = await fetch('http://localhost:8000/groups', {
+      const response = await fetch(`${API_URL}/groups`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
@@ -42,7 +42,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const response = await fetch(`http://localhost:8000/groups/${groupId}/documents`, {
+      const response = await fetch(`${API_URL}/groups/${groupId}/documents`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },

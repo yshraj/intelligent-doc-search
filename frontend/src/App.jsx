@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { API_URL, supabase } from './lib/supabase';
+import DocumentOrganization from './components/DocumentOrganization';
 import './App.css';
 
 function SuccessScreen({ message = "You're all set!", subMessage }) {
@@ -295,6 +296,7 @@ function App() {
   const [conversationMessages, setConversationMessages] = useState([]);
   const [currentPrompts, setCurrentPrompts] = useState([]);
   const [showBackendWarning, setShowBackendWarning] = useState(false);
+  const [showOrganizationView, setShowOrganizationView] = useState(false);
   const bootstrappedTokenRef = useRef('');
 
   // Preflight check for backend availability
@@ -1246,6 +1248,13 @@ function App() {
               <div className="section-header-row">
                 <h2>Documents</h2>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    type="button" 
+                    className={`btn-outline btn-compact ${showOrganizationView ? 'active' : ''}`}
+                    onClick={() => setShowOrganizationView(!showOrganizationView)}
+                  >
+                    {showOrganizationView ? '📋 List View' : '📁 Group View'}
+                  </button>
                   <button type="button" className="btn-outline btn-compact" onClick={fetchDocuments} disabled={documentsLoading || uploadBusy}>
                     {documentsLoading ? 'Refreshing...' : 'Refresh'}
                   </button>
@@ -1261,74 +1270,88 @@ function App() {
                   )}
                 </div>
               </div>
-              <p>Upload and manage your PDFs and text files. List, select, and delete from one place.</p>
+              <p>Upload and manage your PDFs and text files. {showOrganizationView ? 'Browse by groups and categories.' : 'List, select, and delete from one place.'}</p>
 
               {clearAllError ? <p className="inline-alert" role="alert">{clearAllError}</p> : null}
 
-              <form className="upload-form" onSubmit={handleUploadDocument}>
-                <input type="file" name="file" accept=".pdf,.txt,text/plain,application/pdf" disabled={uploadBusy} />
-                <button type="submit" className="btn-outline" disabled={uploadBusy}>
-                  {uploadBusy ? 'Uploading...' : 'Upload'}
-                </button>
-              </form>
+              {!showOrganizationView && (
+                <>
+                  <form className="upload-form" onSubmit={handleUploadDocument}>
+                    <input type="file" name="file" accept=".pdf,.txt,text/plain,application/pdf" disabled={uploadBusy} />
+                    <button type="submit" className="btn-outline" disabled={uploadBusy}>
+                      {uploadBusy ? 'Uploading...' : 'Upload'}
+                    </button>
+                  </form>
 
-              {uploadDuplicate && (
-                <div className="inline-info" role="status">
-                  ℹ️ This file already exists in your library. Showing existing document.
-                </div>
+                  {uploadDuplicate && (
+                    <div className="inline-info" role="status">
+                      ℹ️ This file already exists in your library. Showing existing document.
+                    </div>
+                  )}
+                  {uploadError ? <p className="inline-alert" role="alert">{uploadError}</p> : null}
+                  {documentsError ? <p className="inline-alert" role="alert">{documentsError}</p> : null}
+
+                  {documentsLoading ? <p className="section-muted">Loading documents...</p> : null}
+
+                  {!documentsLoading && documents.length === 0 ? (
+                    <p className="section-muted">No documents yet. Upload your first file to get started.</p>
+                  ) : null}
+
+                  {documents.length > 0 ? (
+                    <ul className="document-list">
+                      {documents.map((doc) => (
+                        <li key={doc.id} className="document-item">
+                          <div className="document-main">
+                            <div className="document-title-row">
+                              <span className="file-type-pill">{getFileTypeLabel(doc.filename)}</span>
+                              <p className="document-title">{doc.title || doc.filename}</p>
+                              <span className={`status-pill status-${doc.status || 'processing'}`}>{doc.status || 'processing'}</span>
+                            </div>
+                            <p className="document-meta">
+                              {doc.filename}
+                              {' · '}
+                              {formatBytes(doc.file_size)}
+                              {doc.created_at ? ` · ${formatDate(doc.created_at)}` : ''}
+                            </p>
+                          </div>
+                          <div className="document-actions">
+                            <button
+                              type="button"
+                              className="btn-primary-inline"
+                              onClick={() => {
+                                if (doc.status !== 'ready') return;
+                                setChatDocumentId(doc.id);
+                                setActiveSection('chat');
+                              }}
+                              disabled={doc.status !== 'ready'}
+                            >
+                              Use in chat
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-danger-outline btn-compact"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              disabled={deleteBusyId === doc.id}
+                            >
+                              {deleteBusyId === doc.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
               )}
-              {uploadError ? <p className="inline-alert" role="alert">{uploadError}</p> : null}
-              {documentsError ? <p className="inline-alert" role="alert">{documentsError}</p> : null}
 
-              {documentsLoading ? <p className="section-muted">Loading documents...</p> : null}
-
-              {!documentsLoading && documents.length === 0 ? (
-                <p className="section-muted">No documents yet. Upload your first file to get started.</p>
-              ) : null}
-
-              {documents.length > 0 ? (
-                <ul className="document-list">
-                  {documents.map((doc) => (
-                    <li key={doc.id} className="document-item">
-                      <div className="document-main">
-                        <div className="document-title-row">
-                          <span className="file-type-pill">{getFileTypeLabel(doc.filename)}</span>
-                          <p className="document-title">{doc.title || doc.filename}</p>
-                          <span className={`status-pill status-${doc.status || 'processing'}`}>{doc.status || 'processing'}</span>
-                        </div>
-                        <p className="document-meta">
-                          {doc.filename}
-                          {' · '}
-                          {formatBytes(doc.file_size)}
-                          {doc.created_at ? ` · ${formatDate(doc.created_at)}` : ''}
-                        </p>
-                      </div>
-                      <div className="document-actions">
-                        <button
-                          type="button"
-                          className="btn-primary-inline"
-                          onClick={() => {
-                            if (doc.status !== 'ready') return;
-                            setChatDocumentId(doc.id);
-                            setActiveSection('chat');
-                          }}
-                          disabled={doc.status !== 'ready'}
-                        >
-                          Use in chat
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-danger-outline btn-compact"
-                          onClick={() => handleDeleteDocument(doc.id)}
-                          disabled={deleteBusyId === doc.id}
-                        >
-                          {deleteBusyId === doc.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              {showOrganizationView && (
+                <DocumentOrganization 
+                  userId={session?.user?.id}
+                  onDocumentSelect={(doc) => {
+                    setChatDocumentId(doc.id);
+                    setActiveSection('chat');
+                  }}
+                />
+              )}
               </section>
             ) : null}
 
