@@ -297,6 +297,11 @@ function App() {
   const [currentPrompts, setCurrentPrompts] = useState([]);
   const [showBackendWarning, setShowBackendWarning] = useState(false);
   const [showOrganizationView, setShowOrganizationView] = useState(false);
+  const [downloadingDocId, setDownloadingDocId] = useState('');
+  const [theme, setTheme] = useState(() => {
+    // Load theme from localStorage or default to 'light'
+    return localStorage.getItem('theme') || 'light';
+  });
   const bootstrappedTokenRef = useRef('');
 
   // Preflight check for backend availability
@@ -573,7 +578,10 @@ function App() {
   };
 
   const handleDownloadDocument = async (documentId, filename) => {
-    if (!session?.access_token || !documentId) return;
+    if (!session?.access_token || !documentId || downloadingDocId) return;
+
+    setDownloadingDocId(documentId);
+    setDocumentsError('');
 
     try {
       const response = await fetch(`${API_URL}/documents/${documentId}/download`, {
@@ -604,8 +612,22 @@ function App() {
       document.body.removeChild(a);
     } catch (error) {
       setDocumentsError(toFriendlyError(error, 'Download failed. Please try again.'));
+    } finally {
+      setDownloadingDocId('');
     }
   };
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Apply theme on mount and when it changes
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const handleChatSubmit = async (event) => {
     event.preventDefault();
@@ -1226,6 +1248,14 @@ function App() {
             </span>
           </div>
           <div className="user-wrap">
+            <button 
+              type="button" 
+              className="btn-theme-toggle" 
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
             <span className="user-name">{userProfile?.full_name || session.user.email}</span>
             <button type="button" className="btn-danger-outline" onClick={signOut}>
               Sign out
@@ -1288,7 +1318,7 @@ function App() {
                     className={`btn-outline btn-compact ${showOrganizationView ? 'active' : ''}`}
                     onClick={() => setShowOrganizationView(!showOrganizationView)}
                   >
-                    {showOrganizationView ? '📋 List View' : '📁 Group View'}
+                    {showOrganizationView ? 'List View' : 'Group View'}
                   </button>
                   <button type="button" className="btn-outline btn-compact" onClick={fetchDocuments} disabled={documentsLoading || uploadBusy}>
                     {documentsLoading ? 'Refreshing...' : 'Refresh'}
@@ -1366,9 +1396,10 @@ function App() {
                               type="button"
                               className="btn-outline btn-compact"
                               onClick={() => handleDownloadDocument(doc.id, doc.filename)}
+                              disabled={downloadingDocId === doc.id}
                               title="Download document"
                             >
-                              ⬇️ Download
+                              {downloadingDocId === doc.id ? 'Downloading...' : 'Download'}
                             </button>
                             <button
                               type="button"

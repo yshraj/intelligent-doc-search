@@ -32,7 +32,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Colors */
+  /* Colors - Light Mode */
   --primary: #007aff;
   --primary-hover: #0051d5;
   --danger: #ff3b30;
@@ -87,6 +87,25 @@
   --tracking-normal: 0;
   --tracking-wide: 0.02em;
   --tracking-wider: 0.05em;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --primary: #0a84ff;
+  --primary-hover: #409cff;
+  --danger: #ff453a;
+  --danger-hover: #ff6961;
+  --success: #32d74b;
+  --warning: #ff9f0a;
+  --text: #f5f5f7;
+  --text-secondary: #98989d;
+  --text-muted: #636366;
+  --bg: #000000;
+  --bg-secondary: #1c1c1e;
+  --border: #38383a;
+  --border-light: #2c2c2e;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-hover: rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -417,6 +436,38 @@ button, .cta, .btn-outline, .btn-primary-inline, .btn-danger-outline, .btn-compa
 .btn-compact {
   padding: 6px 12px;
   font-size: 13px;
+}
+
+.btn-theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-theme-toggle:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.user-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
 }
 
 /* Auth Screen */

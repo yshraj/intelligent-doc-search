@@ -6,6 +6,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const [downloadingDocId, setDownloadingDocId] = useState('');
   
   // Cache for group documents - prevents unnecessary API calls
   const documentsCache = useRef(new Map());
@@ -21,6 +22,10 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
   }, [userId]);
 
   const handleDownloadDocument = useCallback(async (documentId, filename) => {
+    if (downloadingDocId) return; // Prevent multiple downloads
+    
+    setDownloadingDocId(documentId);
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -54,8 +59,10 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
     } catch (error) {
       console.error('Download failed:', error);
       alert('Failed to download document. Please try again.');
+    } finally {
+      setDownloadingDocId('');
     }
-  }, []);
+  }, [downloadingDocId]);
 
   const fetchGroups = useCallback(async () => {
     if (fetchingRef.current) return; // Prevent duplicate calls
@@ -202,14 +209,14 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
   return (
     <div className="document-organization">
       <div className="doc-org-header">
-        <h3>📁 Document Organization</h3>
+        <h3>Document Organization</h3>
         <button 
           className="refresh-btn" 
           onClick={handleRefresh}
           disabled={loading}
           title="Refresh groups"
         >
-          🔄
+          ↻
         </button>
       </div>
 
@@ -261,9 +268,10 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
                                   e.stopPropagation();
                                   handleDownloadDocument(doc.id, doc.filename);
                                 }}
-                                title="Download document"
+                                disabled={downloadingDocId === doc.id}
+                                title={downloadingDocId === doc.id ? "Downloading..." : "Download"}
                               >
-                                ⬇️
+                                {downloadingDocId === doc.id ? '...' : '↓'}
                               </button>
                             </div>
                           ))
