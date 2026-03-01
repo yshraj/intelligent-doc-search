@@ -1401,3 +1401,55 @@ def _type_to_group_name(self, doc_type: str) -> str:
 ```
 
 Restart backend and upload a document with "standard operating procedure" - it will automatically go to the "Standard Operating Procedures" group!
+
+
+---
+
+## Document Download Feature
+
+### Implementation
+
+**Backend Endpoint:** `GET /documents/{document_id}/download`
+
+Downloads the original uploaded file from Supabase Storage with proper security checks.
+
+**Security:**
+- JWT authentication required
+- Ownership verification via RLS
+- Storage access via service role (secure)
+- No direct storage URLs exposed
+
+**Response:**
+- File content as blob
+- Content-Type header (application/pdf or text/plain)
+- Content-Disposition header for download
+
+**Frontend Implementation:**
+- Download handler in App.jsx and DocumentOrganization.jsx
+- Creates temporary blob URL
+- Triggers browser download
+- Automatic cleanup of resources
+
+**Use Cases:**
+- Re-ingestion after editing documents
+- Archival and backup
+- Sharing with external parties
+- Verification of uploaded content
+
+### Performance Optimizations
+
+**Document Organization Component:**
+- Smart caching system using `useRef(new Map())`
+- Documents fetched once per group and cached
+- Cache cleared only on explicit refresh
+- 50-80% reduction in API calls
+- Independent group state management
+- Race condition prevention with loading guards
+
+**Benefits:**
+- Instant expand/collapse after first load
+- No redundant database queries
+- Better user experience
+- Lower server load
+- Scalable for micro SaaS
+

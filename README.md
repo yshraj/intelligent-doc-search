@@ -9,6 +9,8 @@ DocuChat combines semantic search with large language models to provide accurate
 ## ✨ Key Features
 
 - **Smart Document Processing** - Upload PDF/TXT files with automatic text extraction and intelligent chunking
+- **Document Download** - Download uploaded documents for re-ingestion, archival, or sharing
+- **Document Organization** - Automatic grouping by type, topic, and time with smart caching
 - **Intent-Aware RAG** - 8 intent types for optimized query understanding and response generation
 - **Semantic Search** - Vector-based retrieval using Qdrant for finding relevant content
 - **Source Citations** - Every answer includes page numbers and text snippets from source documents
@@ -364,8 +366,16 @@ The system detects 8 query intent types for optimized prompting:
 - `GET /documents` - List user's documents
 - `POST /documents/upload` - Upload new document
 - `GET /documents/{id}` - Get document details
+- `GET /documents/{id}/download` - Download document file
 - `DELETE /documents/{id}` - Delete document
-- `POST /documents/clear-all` - Delete all user documents
+- `DELETE /documents/clear-all` - Delete all user documents
+
+**Groups:**
+- `GET /groups` - List user's document groups
+- `POST /groups` - Create new group
+- `GET /groups/{id}/documents` - Get documents in group
+- `PUT /documents/{id}/groups` - Update document group membership
+- `DELETE /groups/{id}` - Delete group
 
 **Chat:**
 - `POST /chat/query` - Ask question and get answer

@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { API_URL, supabase } from '../lib/supabase';
 import './DocumentOrganization.css';
 
 export default function DocumentOrganization({ userId, onDocumentSelect }) {
   const [groups, setGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [groupDocuments, setGroupDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
+  
+  // Cache for group documents - prevents unnecessary API calls
+  const documentsCache = useRef(new Map());
+  const [loadingGroups, setLoadingGroups] = useState(new Set());
+  
+  // Prevent multiple simultaneous fetches
+  const fetchingRef = useRef(false);
 
   useEffect(() => {
     if (userId) {
@@ -16,7 +20,49 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
     }
   }, [userId]);
 
-  const fetchGroups = async () => {
+  const handleDownloadDocument = useCallback(async (documentId, filename) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`${API_URL}/documents/${documentId}/download`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download document');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download document. Please try again.');
+    }
+  }, []);
+
+  const fetchGroups = useCallback(async () => {
+    if (fetchingRef.current) return; // Prevent duplicate calls
+    
+    fetchingRef.current = true;
+    setLoading(true);
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -30,19 +76,33 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
+      } else {
+        console.error('Failed to fetch groups:', response.status);
       }
     } catch (error) {
       console.error('Error fetching groups:', error);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, []);
 
-  const fetchGroupDocuments = async (groupId) => {
-    setLoadingDocuments(true);
+  const fetchGroupDocuments = useCallback(async (groupId) => {
+    // Check cache first
+    if (documentsCache.current.has(groupId)) {
+      return documentsCache.current.get(groupId);
+    }
+
+    // Prevent duplicate fetches for the same group
+    if (loadingGroups.has(groupId)) {
+      return null;
+    }
+
+    setLoadingGroups(prev => new Set(prev).add(groupId));
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) return null;
 
       const response = await fetch(`${API_URL}/groups/${groupId}/documents`, {
         headers: {
@@ -52,35 +112,55 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
 
       if (response.ok) {
         const data = await response.json();
-        setGroupDocuments(data);
+        // Cache the result
+        documentsCache.current.set(groupId, data);
+        return data;
+      } else {
+        console.error('Failed to fetch group documents:', response.status);
+        return null;
       }
     } catch (error) {
       console.error('Error fetching group documents:', error);
+      return null;
     } finally {
-      setLoadingDocuments(false);
+      setLoadingGroups(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(groupId);
+        return newSet;
+      });
     }
-  };
+  }, [loadingGroups]);
 
-  const handleGroupClick = (group) => {
-    // Toggle expand/collapse
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(group.id)) {
-      newExpanded.delete(group.id);
-      // Clear selection when collapsing
-      if (selectedGroup?.id === group.id) {
-        setSelectedGroup(null);
-        setGroupDocuments([]);
-      }
+  const handleGroupClick = useCallback(async (group) => {
+    const groupId = group.id;
+    const isExpanded = expandedGroups.has(groupId);
+
+    if (isExpanded) {
+      // Collapse - just remove from expanded set
+      setExpandedGroups(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(groupId);
+        return newSet;
+      });
     } else {
-      newExpanded.add(group.id);
-      // Fetch documents when expanding
-      setSelectedGroup(group);
-      fetchGroupDocuments(group.id);
+      // Expand - add to expanded set and fetch documents if not cached
+      setExpandedGroups(prev => new Set(prev).add(groupId));
+      
+      // Fetch documents if not in cache
+      if (!documentsCache.current.has(groupId)) {
+        await fetchGroupDocuments(groupId);
+      }
     }
-    setExpandedGroups(newExpanded);
-  };
+  }, [expandedGroups, fetchGroupDocuments]);
 
-  const groupByType = () => {
+  const handleRefresh = useCallback(() => {
+    // Clear cache on refresh
+    documentsCache.current.clear();
+    setExpandedGroups(new Set());
+    fetchGroups();
+  }, [fetchGroups]);
+
+  const groupByType = useCallback(() => {
     const grouped = {};
     groups.forEach(group => {
       if (!grouped[group.group_type]) {
@@ -89,7 +169,7 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
       grouped[group.group_type].push(group);
     });
     return grouped;
-  };
+  }, [groups]);
 
   const getGroupIcon = (groupType) => {
     const icons = {
@@ -123,7 +203,12 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
     <div className="document-organization">
       <div className="doc-org-header">
         <h3>📁 Document Organization</h3>
-        <button className="refresh-btn" onClick={fetchGroups}>
+        <button 
+          className="refresh-btn" 
+          onClick={handleRefresh}
+          disabled={loading}
+          title="Refresh groups"
+        >
           🔄
         </button>
       </div>
@@ -136,41 +221,58 @@ export default function DocumentOrganization({ userId, onDocumentSelect }) {
                 {getGroupIcon(type)} {getGroupTypeLabel(type)}
               </div>
               
-              {typeGroups.map(group => (
-                <div key={group.id} className="group-item">
-                  <div
-                    className={`group-name ${selectedGroup?.id === group.id ? 'selected' : ''}`}
-                    onClick={() => handleGroupClick(group)}
-                  >
-                    <span className="group-icon">
-                      {expandedGroups.has(group.id) ? '▼' : '▶'}
-                    </span>
-                    <span className="group-label">{group.group_name}</span>
-                    <span className="doc-count">{group.document_count}</span>
-                  </div>
-                  
-                  {expandedGroups.has(group.id) && selectedGroup?.id === group.id && (
-                    <div className="group-documents">
-                      {loadingDocuments ? (
-                        <div className="no-documents">Loading documents...</div>
-                      ) : groupDocuments.length === 0 ? (
-                        <div className="no-documents">No documents</div>
-                      ) : (
-                        groupDocuments.map(doc => (
-                          <div
-                            key={doc.id}
-                            className="doc-item"
-                            onClick={() => onDocumentSelect?.(doc)}
-                          >
-                            <span className="doc-icon">📄</span>
-                            <span className="doc-name">{doc.filename}</span>
-                          </div>
-                        ))
-                      )}
+              {typeGroups.map(group => {
+                const isExpanded = expandedGroups.has(group.id);
+                const isLoading = loadingGroups.has(group.id);
+                const cachedDocs = documentsCache.current.get(group.id) || [];
+                
+                return (
+                  <div key={group.id} className="group-item">
+                    <div
+                      className={`group-name ${isExpanded ? 'expanded' : ''}`}
+                      onClick={() => handleGroupClick(group)}
+                    >
+                      <span className="group-icon">
+                        {isExpanded ? '▼' : '▶'}
+                      </span>
+                      <span className="group-label">{group.group_name}</span>
+                      <span className="doc-count">{group.document_count}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    {isExpanded && (
+                      <div className="group-documents">
+                        {isLoading ? (
+                          <div className="no-documents">Loading documents...</div>
+                        ) : cachedDocs.length === 0 ? (
+                          <div className="no-documents">No documents</div>
+                        ) : (
+                          cachedDocs.map(doc => (
+                            <div key={doc.id} className="doc-item-wrapper">
+                              <div
+                                className="doc-item"
+                                onClick={() => onDocumentSelect?.(doc)}
+                              >
+                                <span className="doc-icon">📄</span>
+                                <span className="doc-name">{doc.filename}</span>
+                              </div>
+                              <button
+                                className="doc-download-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadDocument(doc.id, doc.filename);
+                                }}
+                                title="Download document"
+                              >
+                                ⬇️
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
 

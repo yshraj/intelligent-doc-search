@@ -30,11 +30,17 @@
   cursor: pointer;
   padding: 5px;
   border-radius: 4px;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
-.refresh-btn:hover {
+.refresh-btn:hover:not(:disabled) {
   background: #f0f0f0;
+  transform: rotate(90deg);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .doc-org-content {
@@ -84,9 +90,10 @@
   background: #f8f9fa;
 }
 
-.group-name.selected {
+.group-name.expanded {
   background: #e3f2fd;
   color: #1976d2;
+  font-weight: 500;
 }
 
 .group-icon {
@@ -107,9 +114,11 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
+  min-width: 20px;
+  text-align: center;
 }
 
-.group-name.selected .doc-count {
+.group-name.expanded .doc-count {
   background: #1976d2;
   color: white;
 }
@@ -119,21 +128,45 @@
   padding: 5px 0;
 }
 
-.doc-item {
+.doc-item-wrapper {
   display: flex;
   align-items: center;
   padding: 8px 15px 8px 45px;
-  cursor: pointer;
+  gap: 8px;
   transition: background 0.2s;
-  gap: 10px;
 }
 
-.doc-item:hover {
+.doc-item-wrapper:hover {
   background: #f0f0f0;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+  gap: 10px;
+  min-width: 0;
+}
+
+.doc-download-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.doc-download-btn:hover {
+  background: #e0e0e0;
 }
 
 .doc-icon {
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .doc-name {

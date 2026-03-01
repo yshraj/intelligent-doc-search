@@ -243,6 +243,60 @@ async def get_document(
     return _row_to_doc(result.data[0])
 
 
+@router.get("/{document_id}/download")
+async def download_document(
+    document_id: str,
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Download document file. Enforces ownership via RLS."""
+    from fastapi.responses import Response
+    
+    client = _supabase_user(user.token)
+    
+    # Get document metadata to verify ownership and get storage path
+    try:
+        result = (
+            client.table(DOCUMENTS_TABLE)
+            .select("id, filename, storage_path, mime_type")
+            .eq("id", document_id)
+            .eq("user_id", user.id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as exc:
+        logger.exception("Get document for download failed: %s", exc)
+        _raise_doc_error("get", exc)
+
+    if not result.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    
+    doc = result.data[0]
+    storage_path = doc["storage_path"]
+    filename = doc["filename"]
+    mime_type = doc["mime_type"]
+    
+    # Download file from storage
+    admin = _supabase_admin()
+    try:
+        file_data = admin.storage.from_(STORAGE_BUCKET).download(storage_path)
+        
+        # Return file as response with proper headers
+        return Response(
+            content=file_data,
+            media_type=mime_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Type": mime_type,
+            }
+        )
+    except Exception as exc:
+        logger.exception("Storage download failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to download file: {str(exc)[:200]}",
+        ) from exc
+
+
 @router.delete("/clear-all")
 async def clear_all_documents(
     user: AuthenticatedUser = Depends(get_current_user),

@@ -572,6 +572,41 @@ function App() {
     }
   };
 
+  const handleDownloadDocument = async (documentId, filename) => {
+    if (!session?.access_token || !documentId) return;
+
+    try {
+      const response = await fetch(`${API_URL}/documents/${documentId}/download`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download document');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      setDocumentsError(toFriendlyError(error, 'Download failed. Please try again.'));
+    }
+  };
+
   const handleChatSubmit = async (event) => {
     event.preventDefault();
     if (!session?.access_token || chatBusy) return;
@@ -1326,6 +1361,14 @@ function App() {
                               disabled={doc.status !== 'ready'}
                             >
                               Use in chat
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline btn-compact"
+                              onClick={() => handleDownloadDocument(doc.id, doc.filename)}
+                              title="Download document"
+                            >
+                              ⬇️ Download
                             </button>
                             <button
                               type="button"
