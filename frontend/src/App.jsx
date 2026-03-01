@@ -1240,12 +1240,44 @@ function App() {
           </div>
         )}
         <header className="app-header">
-          <div className="brand">
-            <BrandIcon />
-            <span className="brand-name">
-              DocuChat
-              <span className="brand-tagline">AI Document Chat</span>
-            </span>
+          <div className="header-left">
+            <div className="brand">
+              <BrandIcon />
+              <span className="brand-name">
+                DocuChat
+                <span className="brand-tagline">AI Document Chat</span>
+              </span>
+            </div>
+            <nav className="header-nav" aria-label="Main navigation">
+              <button
+                type="button"
+                className={`nav-tab ${activeSection === 'documents' ? 'active' : ''}`}
+                onClick={() => setActiveSection('documents')}
+              >
+                Documents
+              </button>
+              <button
+                type="button"
+                className={`nav-tab ${activeSection === 'chat' ? 'active' : ''}`}
+                onClick={() => setActiveSection('chat')}
+              >
+                Chat
+              </button>
+              <button
+                type="button"
+                className={`nav-tab ${activeSection === 'history' ? 'active' : ''}`}
+                onClick={() => setActiveSection('history')}
+              >
+                History
+              </button>
+              <button
+                type="button"
+                className={`nav-tab ${activeSection === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveSection('settings')}
+              >
+                Settings
+              </button>
+            </nav>
           </div>
           <div className="user-wrap">
             <button 
@@ -1277,36 +1309,7 @@ function App() {
               </button>
             </div>
           ) : null}
-          <nav className="workspace-nav" aria-label="Workspace sections">
-            <button
-              type="button"
-              className={`workspace-tab ${activeSection === 'documents' ? 'active' : ''}`}
-              onClick={() => setActiveSection('documents')}
-            >
-              Documents
-            </button>
-            <button
-              type="button"
-              className={`workspace-tab ${activeSection === 'chat' ? 'active' : ''}`}
-              onClick={() => setActiveSection('chat')}
-            >
-              Chat
-            </button>
-            <button
-              type="button"
-              className={`workspace-tab ${activeSection === 'history' ? 'active' : ''}`}
-              onClick={() => setActiveSection('history')}
-            >
-              History
-            </button>
-            <button
-              type="button"
-              className={`workspace-tab ${activeSection === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveSection('settings')}
-            >
-              Settings
-            </button>
-          </nav>
+
           <div className="sections">
             {activeSection === 'documents' ? (
               <section className="section-card">
